@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Science & GK Quiz</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .quiz-card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    h1 {
+      text-align: center;
+      color: #00e676;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 18px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    button.opt-btn {
+      background: #2a2a2a;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    button.opt-btn:hover {
+      background: #333;
+      border-color: #00e676;
+    }
+    .result {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 18px;
+    }
+    .btn-next {
+      background: #00e676;
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="quiz-card">
+    <h1>🔬 Science & GK Quiz</h1>
+    <div id="quiz-container">
+      <div class="question" id="question">लोड हो रहा है...</div>
+      <div class="options" id="options"></div>
+      <div class="result" id="result"></div>
+      <button class="btn-next" id="next-btn" onclick="loadNextQuestion()">अगला सवाल ➔</button>
+    </div>
+  </div>
+
+  <script>
+    let questions = [];
+    let currentIndex = 0;
+
+    async function fetchQuestions() {
+      try {
+        const res = await fetch('/api/test-db');
+        const data = await res.json();
+        if (data.status === 'success' && data.data.length > 0) {
+          questions = data.data;
+          showQuestion();
+        } else {
+          document.getElementById('question').innerText = 'कोई सवाल नहीं मिला!';
+        }
+      } catch (err) {
+        document.getElementById('question').innerText = 'डेटा लोड करने में समस्या आई!';
+      }
+    }
+
+    function showQuestion() {
+      document.getElementById('result').innerText = '';
+      document.getElementById('next-btn').style.display = 'none';
+      
+      const q = questions[currentIndex];
+      document.getElementById('question').innerText = `Q${currentIndex + 1}. ${q.question}`;
+      
+      const optionsContainer = document.getElementById('options');
+      optionsContainer.innerHTML = `
+        <button class="opt-btn" onclick="checkAnswer('${q.option_a}', '${q.correct_answer}')">A) ${q.option_a}</button>
+        <button class="opt-btn" onclick="checkAnswer('${q.option_b}', '${q.correct_answer}')">B) ${q.option_b}</button>
+        <button class="opt-btn" onclick="checkAnswer('${q.option_c}', '${q.correct_answer}')">C) ${q.option_c}</button>
+        <button class="opt-btn" onclick="checkAnswer('${q.option_d}', '${q.correct_answer}')">D) ${q.option_d}</button>
+      `;
+    }
+
+    function checkAnswer(selected, correct) {
+      const resultDiv = document.getElementById('result');
+      if (selected === correct) {
+        resultDiv.style.color = '#00e676';
+        resultDiv.innerText = '✅ बिल्कुल सही जवाब!';
+      } else {
+        resultDiv.style.color = '#ff5252';
+        resultDiv.innerText = `❌ गलत जवाब! सही उत्तर: ${correct}`;
+      }
+      
+      document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function loadNextQuestion() {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        showQuestion();
+      } else {
+        document.getElementById('question').innerText = '🎉 आपने सभी सवालों के जवाब दे दिए हैं!';
+        document.getElementById('options').innerHTML = '';
+        document.getElementById('result').innerText = '';
+        document.getElementById('next-btn').style.display = 'none';
+      }
+    }
+
+    fetchQuestions();
+  </script>
+</body>
+</html>
+
